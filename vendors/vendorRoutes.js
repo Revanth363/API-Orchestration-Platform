@@ -20,4 +20,7 @@ router.post('/vendorE/fraud-detect', vendorHandlers.detectFraudVendorE);
 // Vendor F - Face match
 router.post('/vendorF/face-match', vendorHandlers.matchFaceVendorF);
 
+// Vendor G - Voter ID verification
+router.post('/vendorG/verify-voter-id', vendorHandlers.verifyVoterIdVendorG);
+
 module.exports = router;

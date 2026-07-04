@@ -1,11 +1,13 @@
 const express = require('express');
 const router = express.Router();
 
+const agentRoutes = require('./agent');
 const configRoutes = require('./config');
 const vendorRoutes = require('./vendor');
 const genericRoute = require('./generic');
 
 // management routes
+router.use('/agent', agentRoutes);
 router.use('/configs', configRoutes);
 router.use('/vendors', vendorRoutes);
 

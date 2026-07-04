@@ -183,7 +183,37 @@ const vendorHandlers = {
                 checkedAt: new Date().toISOString()
             });
         }, 1800);
+    },
+
+    // Vendor G - Voter ID verification
+// expects { voterId, name }
+verifyVoterIdVendorG(req, res) {
+    const { voterId, name } = req.body;
+
+    if (!voterId || !name) {
+        return res.status(400).json({
+            error: 'voterId and name are required'
+        });
     }
+
+    if (Math.random() < 0.15) {
+        return res.status(503).json({
+            error: 'Vendor G temporarily unavailable'
+        });
+    }
+
+    const isValid = /^[A-Z]{3}[0-9]{7}$/.test(voterId);
+
+    setTimeout(() => {
+        res.status(200).json({
+            voterStatus: isValid ? 'VALID' : 'INVALID',
+            voterName: name,
+            voterId,
+            constituency: 'Sample Constituency',
+            verifiedAt: new Date().toISOString()
+        });
+    }, 600);
+}
 };
 
 module.exports = vendorHandlers;

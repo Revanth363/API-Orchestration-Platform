@@ -53,7 +53,7 @@ Standardized Response
 - **Retry mechanism** — automatically retries failed vendor calls with configurable delay
 - **Validation** — regex and type-based validation on incoming requests
 - **Execution logging** — every request logs each step's input, output, duration, and retry count
-- **In-memory caching** — configs are cached to avoid hitting MongoDB on every request
+- **Redis-backed caching** — configs are cached in Redis with an in-memory fallback to avoid hitting MongoDB on every request
 - **Soft deletes** — deactivating a config preserves execution history
 - **Standardized responses** — every response follows the same structure regardless of vendor
 
@@ -64,12 +64,15 @@ Standardized Response
 | Layer | Technology |
 |---|---|
 | Runtime | Node.js |
-| Framework | Express |
+| Framework | Express.js |
 | Database | MongoDB Atlas |
 | ODM | Mongoose |
 | HTTP Client | Axios |
 | Retry Logic | axios-retry |
 | Logging | Winston |
+| Cache | Redis |
+| AI | Gemini 2.5 Flash |
+| Containerization | Docker / Docker Compose |
 | Environment | dotenv |
 
 ---
@@ -92,9 +95,9 @@ api-orchestration-platform/
 │   └── ResponseAggregator.js
 ├── routes/          # Generic route + CRUD routes
 ├── controllers/     # Config and vendor controllers
-├── services/        # Config loader with cache, execution logger
+├── services/        # Config loader, Redis cache client, execution logger
 ├── vendors/         # Mock vendor APIs (simulates third-party services)
-├── agents/          # AI agent stub for natural language config generation
+├── agents/          # AI agent for natural language config generation
 ├── utils/           # Logger, response builder, request ID generator
 ├── constants/       # Status codes, step types
 ├── seed/            # Database seed scripts
@@ -108,7 +111,7 @@ api-orchestration-platform/
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/yourusername/api-orchestration-platform.git
+git clone https://github.com/Revanth363/api-orchestration-platform.git
 cd api-orchestration-platform
 npm install
 ```
@@ -119,14 +122,21 @@ npm install
 cp .env.example .env
 ```
 
-Open `.env` and add your MongoDB Atlas connection string:
+Open `.env` and add your MongoDB Atlas connection string, Redis settings, and Gemini API key:
 
 ```
 MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<dbname>?retryWrites=true&w=majority
 PORT=5000
 LOG_LEVEL=info
+REDIS_URL=redis://localhost:6379
+UPSTASH_REDIS_URL=
+UPSTASH_REDIS_TOKEN=
 NODE_ENV=development
 ```
+
+If `UPSTASH_REDIS_URL` and `UPSTASH_REDIS_TOKEN` are set, the app uses Upstash Redis. Otherwise it falls back to `REDIS_URL`.
+
+If `GEMINI_API_KEY` is set, the agent endpoint can generate workflow configs from natural language prompts.
 
 ### 3. Seed the database
 
@@ -136,7 +146,7 @@ npm run seed
 
 This runs two scripts in order:
 - `seed/vendors.js` — creates six mock vendors
-- `seed/apiConfigs.js` — creates three workflow configurations
+- `seed/apiConfig.js` — creates three workflow configurations
 
 ### 4. Start the server
 
@@ -149,6 +159,18 @@ npm start
 ```
 
 Server starts on `http://localhost:5000`
+
+### 5. Run with Docker
+
+```bash
+docker compose up
+```
+
+The compose file starts the app, MongoDB, and Redis together. The app talks to MongoDB at `mongo:27017` and Redis at `redis:6379` inside the Docker network.
+
+If `UPSTASH_REDIS_URL` and `UPSTASH_REDIS_TOKEN` are present in your `.env`, the app will prefer Upstash Redis even when started through Docker. Otherwise it will use the Redis container defined in the compose file.
+
+If you want to seed data into the Dockerized database, run the seed scripts from your host against the same MongoDB URI or add a one-off seed container.
 
 ---
 
@@ -166,7 +188,7 @@ Server starts on `http://localhost:5000`
 
 This is the heart of the project. When a request comes in:
 
-1. The generic route catches it (`router.all('*')`)
+1. The generic route receives the incoming request through the dynamic routing layer.
 2. Config loader fetches the matching ApiConfig from MongoDB (or cache)
 3. WorkflowEngine validates the request
 4. For each workflow step:
@@ -224,6 +246,22 @@ Same logic applies to responses. No code change — only configuration.
 | PUT | `/api/v1/configs/:id` | Update config |
 | DELETE | `/api/v1/configs/:id` | Deactivate config |
 
+#### Agentic AI Bonus
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/v1/agent/generate-config` | Generate and save an ApiConfig from a natural-language prompt |
+
+Request:
+
+```json
+{
+    "prompt": "Create an API that validates a PAN using VendorA and, if successful, performs fraud detection using VendorE."
+}
+```
+
+The endpoint uses Gemini 2.5 Flash to generate an `ApiConfig`, resolves vendor names to MongoDB ObjectIds, validates the generated structure, and stores the config in MongoDB.
+
 ### Orchestrated APIs (defined by configuration)
 
 | Method | Endpoint | Description |
@@ -231,12 +269,6 @@ Same logic applies to responses. No code change — only configuration.
 | POST | `/api/v1/verify-pan` | PAN verification via VendorA |
 | POST | `/api/v1/verify-aadhaar` | Aadhaar verification via VendorC |
 | POST | `/api/v1/verify-document` | Document pipeline — OCR → Fraud Detection → Face Match |
-
-### Health Check
-
-```
-GET /health
-```
 
 ---
 
@@ -419,30 +451,26 @@ The project includes six mock vendor endpoints that simulate real third-party se
 
 ---
 
-## AI Agent (Stub)
+## AI Agent
 
-`agents/ConfigGenerator.js` is a placeholder for an AI agent that converts natural language into workflow configuration.
+`agents/ConfigGenerator.js` converts natural language into workflow configuration using Gemini 2.5 Flash.
 
-Planned capabilities:
+Current capabilities:
 - Convert natural language prompts into ApiConfig JSON
-- Recommend workflow optimizations
-- Detect invalid configurations
-- Generate test cases for configured APIs
+- Validate the generated structure before saving
+- Resolve vendor names to MongoDB ObjectIds
+- Save the generated config to MongoDB
 
 ---
 
-## Health Check
+## Future Enhancements
 
-```http
-GET /health
-```
-
-```json
-{
-    "status": "ok",
-    "message": "server is running"
-}
-```
+- Parallel workflow execution
+- Visual workflow editor
+- OAuth/JWT authentication
+- Metrics dashboard
+- Kubernetes deployment
+- CI/CD pipeline
 
 ---
 

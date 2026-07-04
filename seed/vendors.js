@@ -19,6 +19,12 @@ const vendors = [
         retry: {
             count: 3,
             delay: 1000
+        },
+        responseSchema: {
+            verificationStatus: 'string - VALID or INVALID',
+            score: 'number - confidence score 0 to 100',
+            panNumber: 'string',
+            fullName: 'string'
         }
     },
     {
@@ -36,6 +42,11 @@ const vendors = [
         retry: {
             count: 3,
             delay: 1000
+        },
+        responseSchema: {
+            result: 'string - SUCCESS or FAILURE',
+            confidence: 'number - confidence score 0 to 100',
+            documentId: 'string'
         }
     },
     {
@@ -53,7 +64,13 @@ const vendors = [
         retry: {
             count: 3,
             delay: 1000
-        }
+        },
+        responseSchema: {
+        status: 'VERIFIED or FAILED',
+        aadhaarNumber: 'string',
+        name: 'string',
+        verifiedAt: 'ISO date string'
+    }
     },
     {
         name: 'VendorD',
@@ -70,6 +87,14 @@ const vendors = [
         retry: {
             count: 2,
             delay: 2000
+        },
+        responseSchema: {
+            name: 'string - extracted name',
+            dob: 'string - extracted date of birth',
+            documentType: 'string - extracted document type',
+            documentNumber: 'string - extracted document number',
+            confidence: 'number - OCR confidence 0 to 100',
+            status: 'string - EXTRACTED or FAILED'
         }
     },
     {
@@ -87,6 +112,13 @@ const vendors = [
         retry: {
             count: 3,
             delay: 1000
+        },
+        responseSchema: {
+            fraudScore: 'number - fraud score 0 to 100',
+            riskLevel: 'string - LOW MEDIUM or HIGH',
+            flagged: 'boolean - true if flagged for fraud',
+            documentNumber: 'string',
+            checkedAt: 'string - ISO date'
         }
     },
     {
@@ -104,6 +136,12 @@ const vendors = [
         retry: {
             count: 3,
             delay: 1000
+        },
+        responseSchema: {
+            matched: 'boolean - true if face matched',
+            similarity: 'number - similarity score 0 to 100',
+            status: 'string - MATCH or NO_MATCH',
+            checkedAt: 'string - ISO date'
         }
     }
 ];
@@ -121,7 +159,7 @@ const seedVendors = async () => {
         const inserted = await Vendor.insertMany(vendors);
         logger.info(`seeded ${inserted.length} vendors successfully`);
 
-        // print ids so we can use them in apiConfigs seed
+        // print ids and endpoints for reference
         inserted.forEach(v => {
             logger.info(`${v.name} | id: ${v._id} | endpoint: ${v.endpoint}`);
         });

@@ -1,0 +1,8 @@
+node_modules
+.git
+.gitignore
+.env
+logs
+*.log
+assignment 1
+assignment 2

@@ -58,7 +58,7 @@ const configController = {
             }
 
             // invalidate cache so next request gets fresh config
-            configLoader.invalidate(config.endpoint, config.method);
+            await configLoader.invalidate(config.endpoint, config.method);
             logger.info(`api config updated: ${config.name}`);
 
             return responseBuilder.success(res, config, 'api config updated successfully');
@@ -81,7 +81,7 @@ const configController = {
             }
 
             // invalidate cache so this config stops being served
-            configLoader.invalidate(config.endpoint, config.method);
+            await configLoader.invalidate(config.endpoint, config.method);
             logger.info(`api config deactivated: ${config.name}`);
 
             return responseBuilder.success(res, null, 'api config deactivated successfully');

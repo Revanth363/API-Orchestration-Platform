@@ -33,6 +33,11 @@ const vendorSchema = new mongoose.Schema(
             of: String,
             default: {}
         },
+        responseSchema: {
+            type: Map,
+            of: String,
+            default: {}
+        },
         authentication: {
             type: {
                 type: String,

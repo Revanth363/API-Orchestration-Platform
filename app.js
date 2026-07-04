@@ -10,9 +10,6 @@ const vendorRoutes = require('./vendors/vendorRoutes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// connect to mongodb
-connectDB();
-
 // body parsing
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -31,8 +28,14 @@ app.use('/api/v1', routes);
 // global error handler - always last
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-    logger.info(`server started on port ${PORT}`);
-});
+const startServer = async () => {
+    await connectDB();
+
+    app.listen(PORT, () => {
+        logger.info(`server started on port ${PORT}`);
+    });
+};
+
+startServer();
 
 module.exports = app;
