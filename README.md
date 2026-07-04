@@ -56,6 +56,9 @@ Standardized Response
 - **Redis-backed caching** — configs are cached in Redis with an in-memory fallback to avoid hitting MongoDB on every request
 - **Soft deletes** — deactivating a config preserves execution history
 - **Standardized responses** — every response follows the same structure regardless of vendor
+- **HTTP API invocation** — dynamically invoke external vendor APIs based on workflow configuration
+- **AI config generator** — generate complete API configurations from natural language prompts using Gemini 2.5 Flash
+- **Docker support** — containerized deployment using Docker and Docker Compose
 
 ---
 
