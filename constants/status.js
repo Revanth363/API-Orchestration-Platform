@@ -1,0 +1,10 @@
+const STATUS = {
+    SUCCESS: 'SUCCESS',
+    FAILED: 'FAILED',
+    PENDING: 'PENDING',
+    VALIDATION_FAILED: 'VALIDATION_FAILED',
+    SKIPPED: 'SKIPPED',
+    PARTIAL: 'PARTIAL'
+};
+
+module.exports = { STATUS };

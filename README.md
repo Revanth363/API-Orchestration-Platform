@@ -446,6 +446,3 @@ GET /health
 
 ---
 
-## Author
-
-Revanth — built as part of Signzy SDE-1 backend assignment.
